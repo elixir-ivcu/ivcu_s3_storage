@@ -29,66 +29,32 @@ defmodule IVCU.Storage.S3 do
   @doc false
   defmacro __using__(opts) do
     otp_app = Keyword.get(opts, :otp_app) || raise ":otp_app key was expected"
-
-    config =
-      Application.get_env(otp_app, __CALLER__.module) ||
-        raise "no configuration provided for #{otp_app}, #{__CALLER__.module}"
-
-    bucket =
-      Keyword.get(config, :bucket) ||
-        raise "expected key :bucket in #{otp_app}, #{__CALLER__.module} " <>
-                "configuration"
-
-    region =
-      Keyword.get(config, :region) ||
-        raise "expected key :region in #{otp_app}, #{__CALLER__.module} " <>
-                "configuration"
-
-    access_key_id =
-      Keyword.get(config, :access_key_id) ||
-        raise "expected key :access_key_id in #{otp_app}, " <>
-                "#{__CALLER__.module} configuration"
-
-    secret_access_key =
-      Keyword.get(config, :secret_access_key) ||
-        raise "expected key :secret_access_key in #{otp_app}, " <>
-                "#{__CALLER__.module} configuration"
-
-    host = Keyword.get(config, :host, "s3.amazonaws.com")
-    scheme = Keyword.get(config, :scheme, "https://")
-
-    config =
-      Macro.escape(%{
-        bucket: bucket,
-        region: region,
-        access_key_id: access_key_id,
-        secret_access_key: secret_access_key,
-        host: host,
-        scheme: scheme
-      })
+    module = __CALLER__.module
 
     quote do
       @behaviour IVCU.Storage
 
       @impl IVCU.Storage
       def put(file) do
-        unquote(__MODULE__).put(unquote(config), file)
+        unquote(__MODULE__).put(unquote(otp_app), unquote(module), file)
       end
 
       @impl IVCU.Storage
       def delete(file) do
-        unquote(__MODULE__).delete(unquote(config), file)
+        unquote(__MODULE__).delete(unquote(otp_app), unquote(module), file)
       end
 
       @impl IVCU.Storage
       def url(file) do
-        unquote(__MODULE__).url(unquote(config), file)
+        unquote(__MODULE__).url(unquote(otp_app), unquote(module), file)
       end
     end
   end
 
   @doc false
-  def put(config, file) do
+  def put(otp_app, module, file) do
+    config = fetch_config!(otp_app, module)
+
     with {:ok, _} <- do_put(config, file) do
       :ok
     end
@@ -114,7 +80,9 @@ defmodule IVCU.Storage.S3 do
   end
 
   @doc false
-  def delete(config, file) do
+  def delete(otp_app, module, file) do
+    config = fetch_config!(otp_app, module)
+
     with {:ok, _} <- do_delete(config, file) do
       :ok
     end
@@ -145,15 +113,42 @@ defmodule IVCU.Storage.S3 do
   @aws_opts ~w[region access_key_id secret_access_key host scheme]a
 
   @doc false
-  def url(config, %{filename: filename}) when is_binary(filename) do
+  def url(otp_app, module, %{filename: filename}) when is_binary(filename) do
+    config = fetch_config!(otp_app, module)
     %{bucket: bucket} = config
     aws_config = Map.take(config, @aws_opts)
 
     {:ok, url} =
       ExAws.S3.presigned_url(aws_config, :get, bucket, filename,
-        virtual_host: true
+        virtual_host: config[:virtual_host]
       )
 
     url
+  end
+
+  @aws_config ~w[bucket region access_key_id secret_access_key virtual_host host scheme]a
+
+  defp fetch_config!(otp_app, module) do
+    config =
+      Application.get_env(otp_app, module) ||
+        raise "no configuration provided for #{otp_app}, #{module}"
+
+    case Enum.into(config, %{}) do
+      %{
+        bucket: _,
+        region: _,
+        access_key_id: _,
+        secret_access_key: _
+      } = config ->
+        config
+        |> Map.take(@aws_config)
+        |> Map.update(:host, "s3.amazonaws.com", & &1)
+        |> Map.update(:scheme, "https://", & &1)
+        |> Map.update(:virtual_host, true, & &1)
+
+      _ ->
+        raise "required keys are :bucket, :region, :access_key_id," <>
+                " :secret_access_key"
+    end
   end
 end
