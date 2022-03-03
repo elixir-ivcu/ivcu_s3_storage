@@ -18,7 +18,11 @@ defmodule IVCUS3Storage.MixProject do
 
       # Docs.
       name: "IVCU S3 Storage",
-      docs: docs()
+      docs: docs(),
+
+      # Package.
+      description: description(),
+      package: package()
     ]
   end
 
@@ -48,6 +52,18 @@ defmodule IVCUS3Storage.MixProject do
       source_url: "https://github.com/elixir-ivcu/ivcu_s3_storage",
       source_ref: "master",
       extras: ["guides/getting_started.md"]
+    ]
+  end
+
+  defp description do
+    "S3 storage for IVCU."
+  end
+
+  defp package do
+    [
+      links: %{"GitHub" => "https://github.com/elixir-ivcu/ivcu_s3_storage"},
+      licenses: ["Apache-2.0"],
+      files: ~w[mix.exs LICENSE README.md lib guides]
     ]
   end
 end
