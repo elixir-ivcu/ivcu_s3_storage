@@ -8,6 +8,16 @@ defmodule IVCUS3Storage.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      preferred_cli_env: [dialyzer: :test],
+
+      # Dialyzer.
+      dialyzer: [
+        plt_add_apps: [:mix],
+        remove_defaults: [:unknown]
+      ],
+
+      # Docs.
+      name: "IVCU S3 Storage",
       docs: docs()
     ]
   end
@@ -22,16 +32,22 @@ defmodule IVCUS3Storage.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:credo, "~> 1.6", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: :test, runtime: false},
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
       {:ex_doc, "~> 0.28", only: :dev, runtime: false},
       {:hackney, "~> 1.9"},
-      {:ivcu, git: "https://github.com/elixir-ivcu/ivcu", tag: "v0.1.0"},
+      {:ivcu, "~> 0.1"},
       {:sweet_xml, "~> 0.7"}
     ]
   end
 
   defp docs do
-    [extras: ["guides/getting_started.md"]]
+    [
+      source_url: "https://github.com/elixir-ivcu/ivcu_s3_storage",
+      source_ref: "master",
+      extras: ["guides/getting_started.md"]
+    ]
   end
 end

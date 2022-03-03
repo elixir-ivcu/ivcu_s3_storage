@@ -26,6 +26,8 @@ defmodule IVCU.Storage.S3 do
   [definition](`IVCU.Definition`).
   """
 
+  alias ExAws.S3
+
   @doc false
   defmacro __using__(opts) do
     otp_app = Keyword.get(opts, :otp_app) || raise ":otp_app key was expected"
@@ -65,8 +67,8 @@ defmodule IVCU.Storage.S3 do
     %{bucket: bucket} = config
 
     src_path
-    |> ExAws.S3.Upload.stream_file()
-    |> ExAws.S3.upload(bucket, filename)
+    |> S3.Upload.stream_file()
+    |> S3.upload(bucket, filename)
     |> aws_request(config)
   end
 
@@ -75,7 +77,7 @@ defmodule IVCU.Storage.S3 do
     %{bucket: bucket} = config
 
     bucket
-    |> ExAws.S3.put_object(filename, content)
+    |> S3.put_object(filename, content)
     |> aws_request(config)
   end
 
@@ -92,7 +94,7 @@ defmodule IVCU.Storage.S3 do
     %{bucket: bucket} = config
 
     bucket
-    |> ExAws.S3.delete_object(filename)
+    |> S3.delete_object(filename)
     |> aws_request(config)
   end
 
@@ -119,7 +121,7 @@ defmodule IVCU.Storage.S3 do
     aws_config = Map.take(config, @aws_opts)
 
     {:ok, url} =
-      ExAws.S3.presigned_url(aws_config, :get, bucket, filename,
+      S3.presigned_url(aws_config, :get, bucket, filename,
         virtual_host: config[:virtual_host]
       )
 
