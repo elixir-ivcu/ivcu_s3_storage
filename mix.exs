@@ -4,7 +4,7 @@ defmodule IVCUS3Storage.MixProject do
   def project do
     [
       app: :ivcu_s3_storage,
-      version: "0.1.1",
+      version: "0.2.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -42,7 +42,7 @@ defmodule IVCUS3Storage.MixProject do
       {:ex_aws_s3, "~> 2.0"},
       {:ex_doc, "~> 0.28", only: :dev, runtime: false},
       {:hackney, "~> 1.9"},
-      {:ivcu, "~> 0.1"},
+      {:ivcu, "~> 0.2"},
       {:sweet_xml, "~> 0.7"}
     ]
   end
