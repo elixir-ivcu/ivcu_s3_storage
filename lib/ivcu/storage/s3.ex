@@ -102,13 +102,17 @@ defmodule IVCU.Storage.S3 do
     %{
       region: region,
       access_key_id: access_key_id,
-      secret_access_key: secret_access_key
+      secret_access_key: secret_access_key,
+      host: host,
+      scheme: scheme
     } = config
 
     ExAws.request(operation,
       region: region,
       access_key_id: access_key_id,
-      secret_access_key: secret_access_key
+      secret_access_key: secret_access_key,
+      host: host,
+      scheme: scheme
     )
   end
 
